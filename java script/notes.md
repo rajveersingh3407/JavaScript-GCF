@@ -14,3 +14,4 @@ https://aman-0402.github.io/JAVASCRIPT/content.html
 -> The default datatype of input field in html forms is text(string) 
 -> console.log(Boolean("")); ->this will give false
 -> console.log(Boolean("Hi")); -> this will give true
+wnfij
