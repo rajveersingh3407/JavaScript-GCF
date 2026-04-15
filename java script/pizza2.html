@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza Order</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #ffe6cc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      margin: 8px 0;
+      padding: 8px;
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      background: orange;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 10px;
+      background: #f2f2f2;
+      padding: 10px;
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🍕 Pizza Order</h2>
+
+  <!-- Basic Info -->
+  <input type="text" id="name" placeholder="Your Name">
+  <input type="tel" id="phone" placeholder="Phone Number">
+
+  <!-- Pizza Details -->
+  <input type="text" id="flavor" placeholder="Pizza Type">
+
+  <label for="size">Choose size</label>
+  <select id="size">
+    <option value="100">Small (₹100)</option>
+    <option value="200">Medium (₹200)</option>
+    <option value="300">Large (₹300)</option>
+  </select>
+
+  <input type="number" id="quantity" placeholder="Quantity">
+
+  <!-- Extra Columns -->
+  <label for="toppings">Extra Toppings</label>
+  <select id="toppings">
+    <option value="0">None</option>
+    <option value="30">Cheese (+₹30)</option>
+    <option value="40">Mushrooms (+₹40)</option>
+    <option value="50">Paneer (+₹50)</option>
+  </select>
+
+  <label for="delivery">Delivery Type</label>
+  <select id="delivery">
+    <option value="0">Pickup (Free)</option>
+    <option value="50">Home Delivery (+₹50)</option>
+  </select>
+
+  <label for="payment">Payment Method</label>
+  <select id="payment">
+    <option>Cash on Delivery</option>
+    <option>UPI</option>
+    <option>Card</option>
+  </select>
+
+  <textarea id="address" placeholder="Enter Address"></textarea>
+
+  <button onclick="calculateOrder()">Order Now</button>
+
+  <div class="result" id="output"></div>
+</div>
+
+<script>
+function calculateOrder() {
+  let name = document.getElementById('name').value;
+  let phone = document.getElementById('phone').value;
+  let flavor = document.getElementById('flavor').value;
+  let price = parseInt(document.getElementById('size').value);
+  let quantity = parseInt(document.getElementById('quantity').value);
+  let toppings = parseInt(document.getElementById('toppings').value);
+  let delivery = parseInt(document.getElementById('delivery').value);
+  let payment = document.getElementById('payment').value;
+  let address = document.getElementById('address').value;
+
+  let total = (price * quantity) + toppings + delivery;
+
+  document.getElementById('output').innerHTML = `
+    <b>Order Summary:</b><br>
+    Name: ${name}<br>
+    Phone: ${phone}<br>
+    Pizza: ${flavor}<br>
+    Quantity: ${quantity}<br>
+    Payment: ${payment}<br>
+    Address: ${address}<br>
+    <b>Total: ₹${total}</b>
+  `;
+}
+</script>
+
+</body>
+</html>

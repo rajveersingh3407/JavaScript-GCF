@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treasure Hunt Game</title>
+    <style>
+    body {
+      font-family: Arial;
+      background: #1e1e2f;
+      color: white;
+      text-align: center;
+      padding-top: 50px;
+    }
+
+    .box {
+      background: #2c2c3c;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      margin: auto;
+    }
+
+    input {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: gold;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 10px;
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🏴‍☠️ Treasure Hunt</h2>
+        <p>Guess a number between 1 and 100</p>
+        <input type="number" id="guess" placeholder="Enter your guess">
+        <br>
+        <button onclick="playGame()">Try Your Luck</button>
+        <div class="result" id="output"></div>
+    </div>
+<script>
+    //variable
+    let secretNumber = Math.floor(Math.random() * 100) + 1; //generates a random number between 1 and 100
+    let attempts = 0;
+    function playGame(){ //function to handle the game logic
+        let userGuess=Number(document.getElementById('guess').value);
+        attempts++;
+        let message="";
+        if(userGuess === secretNumber){ //if the guess is correct
+            message="🎉 You found the treasure in " + attempts + " attempts!";
+        }
+        else if(userGuess > secretNumber){ //if the guess is too high
+            message="Too High! Try again.";
+        }
+        else{ //if the guess is too low
+            message="Too Low! Try again.";
+        }
+        document.getElementById('output').innerText=message; //display the result message
+    }
+</script>
+</body>
+</html>
