@@ -16,3 +16,5 @@ https://aman-0402.github.io/JAVASCRIPT/content.html
 -> console.log(Boolean("Hi")); -> this will give true
 -> syntax for arrow function is -> ()->{}, (parameters)->{expression}
 -> Q. Write a js function with no return statement is going to return __ value?
+-> Q. What is window in javascript? 
+-> Answer -> Window is a global object that represents our browser window. All global variables and functions are part of window.

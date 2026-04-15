@@ -76,3 +76,5 @@
 // }
 // add(5, 3);
 // add(10, 20);
+
+// console.log(typeof window); // o/p -> object
