@@ -67,6 +67,12 @@
 // checkage(16);
 // checkage(21);
 
-console.log(Math.random());
-console.log(Math.random());
-console.log(Math.random());
+// console.log(Math.random());
+// console.log(Math.random());
+// console.log(Math.random());
+
+// function add(a, b) {
+//     console.log(a + b);
+// }
+// add(5, 3);
+// add(10, 20);

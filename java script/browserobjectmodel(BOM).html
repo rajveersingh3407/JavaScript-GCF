@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Dialog Methods Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            text-align: center;
+            padding: 50px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            margin: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: #4facfe;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #007bff;
+        }
+        
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>JS Dialog Demo</h2>
+
+        <button onclick="showAlert()">Show Alert</button>
+        <button onclick="showPrompt()">Show Prompt</button>
+        <button onclick="showConfirm()">Show Confirm</button>
+
+        <div id="result"></div>
+    </div>
+    <script>
+        function showAlert() {
+            alert("🚀 Welcome! This is an alert message");
+        }
+
+        function showPrompt() {
+            let name = prompt("Enter your name:");
+            if (name === null || nmae.trim() === "") {
+                document.getElementById("result".innerText = "No naem entered");
+            } else {
+                document.getElementById("result").innerText = "Hello, " + name + "!";
+            }
+        }
+
+        function showConfirm() {
+            let choice = confirm("Do you want to continue?");
+            if (choice) {
+                document.getElementById("result").innerText = "You chose OK";
+            } else {
+                document.getElementById("result").innerText = "You clicked Cancel";
+            }
+        }
+    </script>
+</body>
+
+</html>
