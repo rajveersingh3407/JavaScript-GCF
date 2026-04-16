@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Calculator | Clint Avenue Supermarts</title>
+    <meta name="description" content="Premium bill calculator for Clint Avenue Supermarts with smart discount logic.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --accent: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Decorative Background Elements */
+        .blob {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--primary);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.2;
+            animation: move 20s infinite alternate;
+        }
+
+        .blob-2 {
+            bottom: 10%;
+            right: 10%;
+            background: var(--accent);
+            animation-delay: -5s;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0); }
+            to { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #2dd4bf, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .checkbox-group input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, var(--primary), #0f766e);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);
+            filter: brightness(1.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: none; /* Shown via JS */
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .bill-item.total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .discount-badge {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="blob"></div>
+<div class="blob blob-2"></div>
+
+<div class="container">
+    <h1>Clint Avenue</h1>
+    <p class="subtitle">Premium Bill Calculator</p>
+
+    <div class="input-group">
+        <label for="customerName">Customer Name</label>
+        <input type="text" id="customerName" placeholder="Enter name">
+    </div>
+
+    <div class="input-group">
+        <label for="billAmount">Purchase Amount (₹)</label>
+        <input type="number" id="billAmount" placeholder="0.00" min="0">
+    </div>
+
+    <div class="checkbox-group" onclick="document.getElementById('isPremium').click()">
+        <input type="checkbox" id="isPremium">
+        <label for="isPremium">Premium Member (Extra 5% Off)</label>
+    </div>
+
+    <button onclick="calculateBill()">Calculate Total</button>
+
+    <div class="result" id="resultArea">
+        <div class="result-title" id="welcomeMsg">Welcome!</div>
+        
+        <div class="bill-item">
+            <span>Original Amount:</span>
+            <span id="origPrice">₹0.00</span>
+        </div>
+        
+        <div class="bill-item">
+            <span>Base Discount:</span>
+            <span id="baseDiscountText">0%</span>
+        </div>
+
+        <div id="premiumBonusRow" class="bill-item hidden">
+            <span>Membership Bonus:</span>
+            <span class="discount-badge">+5% Off</span>
+        </div>
+
+        <div class="bill-item total">
+            <span>Final Bill:</span>
+            <span id="finalTotal">₹0.00</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateBill() {
+        const name = document.getElementById('customerName').value || 'Customer';
+        const amount = parseFloat(document.getElementById('billAmount').value) || 0;
+        const isPremium = document.getElementById('isPremium').checked;
+
+        if (amount < 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        let baseDiscount = 0;
+        if (amount > 5000) {
+            baseDiscount = 20;
+        } else if (amount > 2000) {
+            baseDiscount = 10;
+        }
+
+        const totalDiscount = baseDiscount + (isPremium ? 5 : 0);
+        const discountAmount = (amount * totalDiscount) / 100;
+        const finalAmount = amount - discountAmount;
+
+        // Update UI
+        document.getElementById('welcomeMsg').innerText = `Thank you, ${name}!`;
+        document.getElementById('origPrice').innerText = `₹${amount.toFixed(2)}`;
+        document.getElementById('baseDiscountText').innerText = `${baseDiscount}%`;
+        
+        const premiumRow = document.getElementById('premiumBonusRow');
+        if (isPremium) {
+            premiumRow.style.display = 'flex';
+        } else {
+            premiumRow.style.display = 'none';
+        }
+
+        document.getElementById('finalTotal').innerText = `₹${finalAmount.toFixed(2)}`;
+        
+        // Show result area
+        const resultArea = document.getElementById('resultArea');
+        resultArea.style.display = 'block';
+        
+        // Scroll to result if on mobile
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+</script>
+
+</body>
+</html>

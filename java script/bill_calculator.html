@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill Amount</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #ffe6cc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 280px;
+      text-align: center;
+    }
+
+    input, select {
+      width: 94%;
+      margin: 8px 0;
+      padding: 8px;
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      background: orange;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 10px;
+      background: #f2f2f2;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Bill Amount</h2>
+
+  <input type="text" id="name" placeholder="Your Name">
+
+  <input type="number" id="amount" placeholder="Total Amount">
+
+  <button onclick="calculateOrder()">Calculate Total</button>
+
+</div>
+<script>
+  function calculateOrder() {
+    let name = document.getElementById('name').value;
+    let amount = Number(document.getElementById('amount').value);
+    let total = 0;
+    if(amount>2000){
+      total = amount - (amount * 0.10);
+    } else if(amount>5000){
+      total = amount - (amount * 0.20);
+    } else {
+      total = amount;
+    }
+    document.getElementById('output').innerText = "Hello " + name + ", your total is ₹" + total + ". Thank you for your order!";
+    }
+</script>
+</body>
+</html>

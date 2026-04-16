@@ -18,3 +18,4 @@ https://aman-0402.github.io/JAVASCRIPT/content.html
 -> Q. Write a js function with no return statement is going to return __ value? answer -> Undefined
 -> Q. What is window in javascript? 
 -> Answer -> Window is a global object that represents our browser window. All global variables and functions are part of window.
+-> Q. As a frontend developer at ww technology, you have to design a web application for bill calculator for your clint avenue supermarts. They have specified that if a customer shops for more than 2000 ruppess they get 10% discount, if they shop for 5000 ruppess they get 20% discount, and if they are premium members they get additional 5% discount. Claculate the total bill amount.
