@@ -86,3 +86,60 @@
 //     setTimeout(() => console.log(i), 1000);
 // }
 
+// let text="Rajveer Singh";
+// console.log(text.length);
+// console.log("hello".length);
+// console.log("".length);
+// console.log(text.charAt(0));
+// console.log(text.charAt(text.length - 1));
+// console.log(text.toUpperCase());
+// console.log(text.toLowerCase());
+
+// let text="JavaScript";
+// console.log(text.slice(0,4));
+// console.log(text.slice(4));
+// console.log(text.slice(-6));
+// console.log(text.slice(-6,-2));
+// console.log(text.slice(-1));
+// console.log(text.slice(0));
+
+// let text="Hello World";
+// let newtext=text.replace("World","JavaScript");
+// console.log(newtext);
+// console.log(text);
+// let repeared="cat and cat";
+// console.log(repeared.replace("cat","dog"));
+// console.log(repeared.replaceAll("cat","dog"));
+// console.log(repeared);
+
+// let text="   Hello World javaScript   ";
+// console.log(text);
+// console.log(text.trim());
+// console.log(text.trimStart());
+// console.log(text.trimEnd());
+// console.log(text.trim().length);
+// console.log(text.includes("javaScript"));
+// console.log(text.indexOf("java"));
+// let result=text.replace(/\s/g,"");
+// console.log(result);
+
+// let numberstudent=[35,37,33,34];
+// numberstudent.push(36);
+// console.log(numberstudent);
+// numberstudent.pop();
+// console.log(numberstudent);
+// numberstudent.unshift(32);
+// console.log(numberstudent);
+// numberstudent.shift();
+// console.log(numberstudent);
+// console.log(numberstudent.indexOf(34));
+// console.log(numberstudent.includes(37));
+
+// let colors=["red","green","blue"];
+// for(let i=0;i<colors.length;i++){
+//     console.log(colors[i]);
+// }
+// for (let color of colors){
+//     console.log(color);
+// }
+
