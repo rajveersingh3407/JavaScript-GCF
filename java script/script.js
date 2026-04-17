@@ -143,3 +143,12 @@
 //     console.log(color);
 // }
 
+// let lab={
+//     number:505,
+//     strength:35,
+//     location:"CV Raman"
+// };
+// console.log(lab.location);
+// console.log(lab["number"]);
+// console.log(lab["strength"]);
+
