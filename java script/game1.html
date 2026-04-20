@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laser Director (Mirror Maze)</title>
+<style>
+    :root {
+        --grid-cols: 10;
+        --grid-rows: 10;
+        --cell-size: 50px;
+        --bg-color: #0d1117;
+        --grid-border: #30363d;
+        --cell-bg: #161b22;
+        --cell-hover: #21262d;
+        --laser-color: #ff003c;
+        --mirror-color: #00f0ff;
+        --target-bg: #2ea043;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background-color: var(--bg-color);
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    h1 {
+        margin-bottom: 5px;
+        text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+
+    #status {
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        height: 1.5rem;
+        color: #ff7b72;
+    }
+    #status.win {
+        color: #3fb950;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(63, 185, 80, 0.8);
+    }
+
+    #game-container {
+        position: relative;
+        padding: 5px;
+        background-color: var(--grid-border);
+        border-radius: 8px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    #grid {
+        display: grid;
+        grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
+        grid-template-rows: repeat(var(--grid-rows), var(--cell-size));
+        gap: 1px;
+        background-color: var(--grid-border);
+    }
+
+    .cell {
+        background-color: var(--cell-bg);
+        width: var(--cell-size);
+        height: var(--cell-size);
+        cursor: pointer;
+        position: relative;
+        transition: background-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .cell:hover {
+        background-color: var(--cell-hover);
+    }
+
+    /* Target cell styling */
+    .cell.target {
+        background-color: #1e3a23;
+        box-shadow: inset 0 0 15px var(--target-bg);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* Mirrors */
+    .cell.mirror-f::before { /* forward slash / */
+        content: '';
+        position: absolute;
+        top: 10%; bottom: 10%; left: 45%; right: 45%;
+        background-color: var(--mirror-color);
+        transform: rotate(45deg);
+        border-radius: 4px;
+        box-shadow: 0 0 8px var(--mirror-color);
+        pointer-events: none;
+    }
+    .cell.mirror-b::before { /* backslash \ */
+        content: '';
+        position: absolute;
+        top: 10%; bottom: 10%; left: 45%; right: 45%;
+        background-color: var(--mirror-color);
+        transform: rotate(-45deg);
+        border-radius: 4px;
+        box-shadow: 0 0 8px var(--mirror-color);
+        pointer-events: none;
+    }
+
+    svg {
+        position: absolute;
+        top: 0px; 
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        overflow: visible;
+    }
+
+    .laser-line {
+        fill: none;
+        stroke: var(--laser-color);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 8px var(--laser-color)) drop-shadow(0 0 12px var(--laser-color));
+        transition: all 0.2s;
+    }
+
+    .laser-end {
+        fill: var(--laser-color);
+        filter: drop-shadow(0 0 10px var(--laser-color));
+        transition: all 0.2s;
+    }
+
+    /* Source beam piece */
+    .source-beam {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: white;
+        top: calc(5px + var(--cell-size)/2 - 3px);
+        left: -15px;
+        box-shadow: 0 0 10px #fff, 0 0 20px var(--laser-color);
+    }
+</style>
+</head>
+<body>
+
+<h1>Laser Director</h1>
+<div id="status">Place mirrors to hit the target!</div>
+
+<div id="game-container">
+    <div class="source-beam"></div>
+    <div id="grid"></div>
+    <svg id="laser-svg">
+        <!-- Path will be generated dynamically -->
+        <polyline id="laser-path" class="laser-line" />
+        <circle id="laser-head" class="laser-end" r="5" cx="0" cy="0" opacity="0" />
+    </svg>
+</div>
+
+<script>
+    const COLS = 10;
+    const ROWS = 10;
+    
+    // 0: empty, 1: '/', 2: '\'
+    let gridData = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+    
+    const target = { x: 8, y: 7 }; // specific target square
+    
+    const gridEl = document.getElementById('grid');
+    const pathEl = document.getElementById('laser-path');
+    const headEl = document.getElementById('laser-head');
+    const statusEl = document.getElementById('status');
+    const containerEl = document.getElementById('game-container');
+
+    // Create DOM grid
+    function initGrid() {
+        gridEl.innerHTML = '';
+        for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${y}-${x}`;
+                
+                if (x === target.x && y === target.y) {
+                    cell.classList.add('target');
+                } else {
+                    cell.addEventListener('mousedown', () => {
+                        // Cycle states: 0 -> 1 -> 2 -> 0
+                        gridData[y][x] = (gridData[y][x] + 1) % 3;
+                        updateCellUI(x, y);
+                        calculateLaser();
+                    });
+                }
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    function updateCellUI(x, y) {
+        const cell = document.getElementById(`cell-${y}-${x}`);
+        cell.classList.remove('mirror-f', 'mirror-b');
+        if (gridData[y][x] === 1) cell.classList.add('mirror-f');
+        if (gridData[y][x] === 2) cell.classList.add('mirror-b');
+    }
+
+    function getCellCenter(x, y) {
+        const cell = document.getElementById(`cell-${y}-${x}`);
+        if (!cell) return { cx: 0, cy: 0 };
+        
+        // Return center relative to the game-container
+        return {
+            cx: cell.offsetLeft + cell.offsetWidth / 2,
+            cy: cell.offsetTop + cell.offsetHeight / 2
+        };
+    }
+
+    function calculateLaser() {
+        let path = [];
+        let x = 0;
+        let y = 0;
+        let dx = 1; // start moving RIGHT
+        let dy = 0;
+        
+        let visited = new Set();
+        let hitTarget = false;
+
+        // Origin point just outside the grid
+        const entryCell = getCellCenter(0, 0);
+        path.push({ cx: entryCell.cx - 50, cy: entryCell.cy }); // Start outside left
+
+        while (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+            // Check for infinite loops
+            const stateKey = `${x},${y},${dx},${dy}`;
+            if (visited.has(stateKey)) {
+                // We're stuck in a loop, so the laser gets absorbed/stopped
+                const center = getCellCenter(x, y);
+                path.push({ cx: center.cx, cy: center.cy });
+                break;
+            }
+            visited.add(stateKey);
+
+            const center = getCellCenter(x, y);
+            path.push({ cx: center.cx, cy: center.cy });
+
+            if (x === target.x && y === target.y) {
+                hitTarget = true;
+                break;
+            }
+
+            const state = gridData[y][x];
+            if (state === 1) { // Forward slash '/'
+                let ndx = -dy;
+                let ndy = -dx;
+                dx = ndx; 
+                dy = ndy;
+            } else if (state === 2) { // Backslash '\'
+                let ndx = dy;
+                let ndy = dx;
+                dx = ndx;
+                dy = ndy;
+            }
+
+            // Move to next cell
+            x += dx;
+            y += dy;
+        }
+
+        // If it exited the board and didn't hit target, extend line outside
+        if (!hitTarget && (x < 0 || x >= COLS || y < 0 || y >= ROWS)) {
+            // Find the last valid cell it was in
+            let lastX = x - dx;
+            let lastY = y - dy;
+            const center = getCellCenter(lastX, lastY);
+            // Draw a bit further linearly off the grid
+            path.push({ 
+                cx: center.cx + dx * 25, 
+                cy: center.cy + dy * 25 
+            });
+        }
+
+        renderPath(path, hitTarget);
+    }
+
+    function renderPath(path, hitTarget) {
+        const pointsStr = path.map(p => `${p.cx},${p.cy}`).join(' ');
+        pathEl.setAttribute('points', pointsStr);
+
+        if (path.length > 0) {
+            const endPoint = path[path.length - 1];
+            headEl.setAttribute('cx', endPoint.cx);
+            headEl.setAttribute('cy', endPoint.cy);
+            headEl.setAttribute('opacity', '1');
+            
+            if (hitTarget) {
+                headEl.setAttribute('fill', '#fff');
+                headEl.setAttribute('r', '8');
+                statusEl.textContent = 'Mission Accomplished! Target Engaged.';
+                statusEl.className = 'win';
+            } else {
+                headEl.setAttribute('fill', 'var(--laser-color)');
+                headEl.setAttribute('r', '5');
+                statusEl.textContent = 'Target not reached. Adjust mirrors.';
+                statusEl.className = '';
+            }
+        }
+    }
+
+    // Initialize 
+    initGrid();
+    
+    // We need to wait for layout to get accurate offsetLeft/Top values
+    setTimeout(calculateLaser, 50);
+    window.onresize = calculateLaser;
+
+</script>
+</body>
+</html>

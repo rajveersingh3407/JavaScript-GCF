@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spellcaster Defense</title>
+    <style>
+        :root {
+            --bg-color: #0b0214;
+            --base-color: #9d00ff;
+            --enemy-color: #ff00ea;
+            --text-color: #ffffff;
+            --highlight-color: #00f0ff;
+            --danger-color: #ff3c00;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(157, 0, 255, 0.05) 0%, transparent 70%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 234, 0.05) 0%, transparent 50%);
+        }
+
+        #game-header {
+            position: absolute;
+            top: 20px;
+            display: flex;
+            gap: 40px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-item {
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            color: var(--highlight-color);
+            text-shadow: 0 0 10px var(--highlight-color);
+        }
+
+        #game-area {
+            position: relative;
+            width: 90vw;
+            height: 70vh;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--base-color);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: -10px 0 30px rgba(157, 0, 255, 0.2);
+        }
+
+        /* Enemies */
+        .enemy {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.1s linear;
+        }
+
+        .enemy-sprite {
+            width: 40px;
+            height: 40px;
+            background: var(--enemy-color);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--enemy-color);
+            filter: drop-shadow(0 0 5px white);
+            position: relative;
+        }
+
+        .enemy-sprite::after {
+            content: '';
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            border: 2px border var(--enemy-color);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .enemy-word {
+            margin-top: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .char-typed {
+            color: var(--highlight-color);
+            text-shadow: 0 0 5px var(--highlight-color);
+        }
+
+        .enemy.locked .enemy-sprite {
+            background: var(--highlight-color);
+            box-shadow: 0 0 20px var(--highlight-color);
+        }
+
+        .enemy.locked .enemy-word {
+            border-color: var(--highlight-color);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        /* Barriers / Visual Effects */
+        #barrier {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, transparent, var(--base-color), transparent);
+            box-shadow: 0 0 20px var(--base-color);
+        }
+
+        #game-over {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        #game-over h2 {
+            font-size: 3rem;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+        }
+
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--base-color);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-restart:hover {
+            transform: scale(1.05);
+            background: #b640ff;
+        }
+
+        .vfx-particle {
+            position: absolute;
+            background: var(--enemy-color);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-header">
+    <div class="stat-item">SPELLS CAST: <span id="score" class="stat-value">0</span></div>
+    <div class="stat-item">BARRIER HEALTH: <span id="health" class="stat-value">100%</span></div>
+</div>
+
+<div id="game-area">
+    <div id="barrier"></div>
+    <!-- Enemies will spawn here -->
+    <div id="game-over">
+        <h2>DEFENSES BREACHED</h2>
+        <p>Your magic source has been extinguished.</p>
+        <p>Final Score: <span id="final-score">0</span></p>
+        <button class="btn-restart" onclick="restartGame()">RESTART RITUAL</button>
+    </div>
+</div>
+
+<script>
+    const gameArea = document.getElementById('game-area');
+    const scoreEl = document.getElementById('score');
+    const healthEl = document.getElementById('health');
+    const gameOverEl = document.getElementById('game-over');
+    const finalScoreEl = document.getElementById('final-score');
+
+    const WORDS = [
+        "AETHER", "ARCANE", "BARRIER", "CELESTIAL", "DRAGON", "ELIXIR", "FIREBALL", "GLYPH",
+        "HAVOC", "ILLUSION", "JINX", "KINETIC", "LUMOS", "MYSTIC", "NEBULA", "ORACLE",
+        "PHANTOM", "QUARTZ", "RITUAL", "SPECTER", "TOTEM", "UMBRA", "VORTEX", "WIZARD",
+        "XENON", "YGGDRASIL", "ZEPHYR", "AURORA", "BLIGHT", "CRYSTAL", "DIVINE", "ECHO",
+        "FROST", "GRIMOIRE", "HOLLOW", "INFERNO", "JADE", "KEEPER", "LEYLINE", "MANA",
+        "NIGHTSHADE", "OBSIDIAN", "PYRE", "QUIVER", "REVENANT", "STORM", "THRESHOLD", "VOID"
+    ];
+
+    let gameState = {
+        enemies: [],
+        score: 0,
+        health: 100,
+        active: true,
+        currentTargetId: null,
+        spawnRate: 2000,
+        lastSpawn: 0,
+        difficultyScale: 1
+    };
+
+    function createEnemy() {
+        const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+        const id = Date.now() + Math.random();
+        const y = Math.random() * (gameArea.offsetHeight - 100) + 20;
+        const speed = (0.5 + Math.random() * 0.5) * gameState.difficultyScale;
+
+        const el = document.createElement('div');
+        el.className = 'enemy';
+        el.id = `enemy-${id}`;
+        el.style.right = '-150px';
+        el.style.top = `${y}px`;
+
+        const sprite = document.createElement('div');
+        sprite.className = 'enemy-sprite';
+        
+        const wordBox = document.createElement('div');
+        wordBox.className = 'enemy-word';
+        wordBox.innerHTML = word.split('').map(char => `<span>${char}</span>`).join('');
+
+        el.appendChild(sprite);
+        el.appendChild(wordBox);
+        gameArea.appendChild(el);
+
+        return {
+            id,
+            word,
+            typedCount: 0,
+            speed,
+            x: -150, // from right
+            y,
+            el
+        };
+    }
+
+    function update(timestamp) {
+        if (!gameState.active) return;
+
+        // Spawning
+        if (timestamp - gameState.lastSpawn > gameState.spawnRate) {
+            gameState.enemies.push(createEnemy());
+            gameState.lastSpawn = timestamp;
+            // Gradually increase difficulty
+            if (gameState.spawnRate > 800) gameState.spawnRate -= 20;
+            gameState.difficultyScale += 0.01;
+        }
+
+        // Movement & Collision
+        for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+            const enemy = gameState.enemies[i];
+            enemy.x += enemy.speed;
+            enemy.el.style.transform = `translateX(-${enemy.x}px)`;
+
+            // Check if reached barrier
+            const basePos = gameArea.offsetWidth - 4; // offset from right to left barrier
+            if (enemy.x > basePos) {
+                gameState.health -= 10;
+                updateStats();
+                removeEnemy(i, false);
+                if (gameState.health <= 0) endGame();
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    function removeEnemy(index, wasTyped) {
+        const enemy = gameState.enemies[index];
+        if (gameState.currentTargetId === enemy.id) gameState.currentTargetId = null;
+        
+        if (wasTyped) {
+            spawnParticles(enemy.el.offsetLeft, enemy.el.offsetTop);
+        }
+
+        enemy.el.remove();
+        gameState.enemies.splice(index, 1);
+    }
+
+    function spawnParticles(x, y) {
+        for (let i = 0; i < 8; i++) {
+            const p = document.createElement('div');
+            p.className = 'vfx-particle';
+            const size = Math.random() * 6 + 2;
+            p.style.width = `${size}px`;
+            p.style.height = `${size}px`;
+            p.style.left = `${x}px`;
+            p.style.top = `${y}px`;
+            gameArea.appendChild(p);
+
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 50 + 20;
+            const tx = Math.cos(angle) * dist;
+            const ty = Math.sin(angle) * dist;
+
+            const anim = p.animate([
+                { transform: 'translate(0, 0)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0 }
+            ], { duration: 500, easing: 'out-quad' });
+
+            anim.onfinish = () => p.remove();
+        }
+    }
+
+    function updateStats() {
+        scoreEl.textContent = gameState.score;
+        healthEl.textContent = `${gameState.health}%`;
+        if (gameState.health < 30) healthEl.style.color = 'var(--danger-color)';
+    }
+
+    function endGame() {
+        gameState.active = false;
+        gameOverEl.style.display = 'flex';
+        finalScoreEl.textContent = gameState.score;
+    }
+
+    function restartGame() {
+        gameState.enemies.forEach(e => e.el.remove());
+        gameState = {
+            enemies: [],
+            score: 0,
+            health: 100,
+            active: true,
+            currentTargetId: null,
+            spawnRate: 2000,
+            lastSpawn: performance.now(),
+            difficultyScale: 1
+        };
+        gameOverEl.style.display = 'none';
+        healthEl.style.color = '';
+        updateStats();
+        requestAnimationFrame(update);
+    }
+
+    // Global Key Listener
+    window.addEventListener('keydown', (e) => {
+        if (!gameState.active) return;
+        
+        const char = e.key.toUpperCase();
+        if (char.length !== 1) return;
+
+        // If locked on an enemy
+        if (gameState.currentTargetId !== null) {
+            const enemy = gameState.enemies.find(e => e.id === gameState.currentTargetId);
+            if (enemy && enemy.word[enemy.typedCount] === char) {
+                enemy.typedCount++;
+                updateEnemyWordUI(enemy);
+                
+                if (enemy.typedCount === enemy.word.length) {
+                    gameState.score += 10;
+                    updateStats();
+                    const index = gameState.enemies.indexOf(enemy);
+                    removeEnemy(index, true);
+                }
+            }
+        } 
+        // Try to find a new target
+        else {
+            // Find all enemies starting with this char
+            const potentials = gameState.enemies.filter(e => e.word[0] === char);
+            if (potentials.length > 0) {
+                // Pick the one closest to the barrier (highest x)
+                potentials.sort((a, b) => b.x - a.x);
+                const target = potentials[0];
+                gameState.currentTargetId = target.id;
+                target.el.classList.add('locked');
+                target.typedCount = 1;
+                updateEnemyWordUI(target);
+                
+                // Edge case: 1-letter words (not in list but good practice)
+                if (target.typedCount === target.word.length) {
+                    gameState.score += 10;
+                    updateStats();
+                    removeEnemy(gameState.enemies.indexOf(target), true);
+                }
+            }
+        }
+    });
+
+    function updateEnemyWordUI(enemy) {
+        const spans = enemy.el.querySelectorAll('.enemy-word span');
+        spans.forEach((span, i) => {
+            if (i < enemy.typedCount) span.className = 'char-typed';
+        });
+    }
+
+    // Start
+    updateStats();
+    requestAnimationFrame(update);
+
+</script>
+</body>
+</html>

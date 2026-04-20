@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+  <title>Ghost Hunter Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 10px;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 90vh;
+      cursor: crosshair;
+    }
+
+    .ghost {
+      position: absolute;
+      font-size: 50px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .ghost:hover {
+      transform: scale(1.2);
+    }
+
+    #info {
+      display: flex;
+      justify-content: space-around;
+      font-size: 20px;
+      margin-top: 10px;
+    }
+
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      display: none;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+    <h1>👻 Ghost Hunter Game</h1>
+
+    <div id="info">
+        <div>Score: <span id="score">0</span></div>
+        <div>Lives: <span id="lives">5</span></div>
+    </div>
+
+    <div id="gameArea"></div>
+
+    <div id="gameOver">💀 GAME OVER 💀</div>
+<script>
+    const gameArea = document.getElementById('gameArea');
+    const scoreDisplay = document.getElementById('score');
+    const livesDisplay = document.getElementById('lives');
+    const gameOverDisplay = document.getElementById('gameOver');
+    let score = 0;
+    let lives = 5;
+    let ghostTimeout;
+    function spawnGhost(){
+        if (lives<=0) return;
+        const ghost = document.createElement('div');
+        ghost.classList.add('ghost');
+        ghost.textContent = '👻';
+        const x = Math.random() * (gameArea.clientWidth - 50);
+        const y = Math.random() * (gameArea.clientHeight - 150);
+        ghost.style.left = x + "px";
+        ghost.style.top = y + "px";
+        gameArea.appendChild(ghost);
+        //kill ghost on seconds
+        ghost.addEventListener('click', (e) => {
+            e.stopPropagation();
+            score++;
+            scoreDisplay.textContent = score;
+            gameArea.remove();
+            clearTimeout(ghostTimeout);
+            spawnGhost();
+        });
+        //if not clicked -> lose life
+        ghostTimeout = setTimeout(() => {
+            if (ghost.parentNode){
+                ghost.remove();
+                lives--;
+                livesDisplay.textContent = lives;
+                if (lives <= 0){
+                    endGame();
+                } else {
+                    spawnGhost();
+                }
+            }
+        }, 1200); //ghost stays for 1.2 seconds
+    }
+    function endGame(){
+        gameOverDisplay.style.display = 'block';
+    }
+    //click miss = loss life
+    gameArea.addEventListener('click', () => {
+        if (lives <= 0) return;
+        lives--;
+        livesDisplay.textContent = lives;
+        if (lives <= 0){
+            endGame();
+        }
+    });
+    //start game
+    spawnGhost();
+</script>
+</body>
+</html>
