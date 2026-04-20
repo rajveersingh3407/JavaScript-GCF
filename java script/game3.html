@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline Multi-Game Arcade</title>
+<style>
+  :root {
+    --primary: #2196F3;
+    --secondary: #FF5722;
+    --bg-grad: #1e1e24;
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #ffffff;
+    --c4-p1: #ff3366;
+    --c4-p2: #ffcc00;
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-grad);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .container {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    text-align: center;
+  }
+
+  .container.large { max-width: 600px; }
+
+  h1 {
+    margin-top: 0;
+    font-size: 2.2rem;
+    background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  p.subtitle {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .btn-primary { background: var(--primary); color: #000; }
+  .btn-primary:hover { box-shadow: 0 0 20px var(--primary); transform: translateY(-2px); }
+  
+  .btn-back {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    margin-top: 20px;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.1); }
+
+  .hidden { display: none !important; }
+
+  .game-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .game-card:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.02);
+    border-color: var(--primary);
+  }
+  .game-card h2 { margin: 0; font-size: 1.5rem; color: #fff; }
+  .game-card span { font-size: 0.8rem; color: #bbb; text-transform: uppercase; }
+
+  .ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 90px);
+    grid-gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .ttt-cell {
+    width: 90px; height: 90px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 3.5rem; font-weight: 900; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ttt-cell:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+  .ttt-cell.x { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+  .ttt-cell.o { color: var(--secondary); text-shadow: 0 0 15px var(--secondary); }
+  
+  .status-text { font-size: 1.4rem; font-weight: bold; min-height: 40px; margin: 15px 0; }
+
+  .c4-board {
+    display: grid;
+    grid-template-columns: repeat(7, 50px);
+    grid-gap: 8px;
+    justify-content: center;
+    background: #0055ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    width: fit-content;
+  }
+  .c4-cell {
+    width: 50px; height: 50px;
+    background: #111;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.8);
+    transition: background 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .c4-cell.p1 { background: var(--c4-p1); box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4), 0 0 8px var(--c4-p1); }
+  .c4-cell.p2 { background: var(--c4-p2); box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4), 0 0 8px var(--c4-p2); }
+
+  canvas#snake-board {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    margin: 15px auto;
+    display: block;
+  }
+  .snake-score { font-size: 1.5rem; color: var(--primary); margin-bottom: 15px; font-weight: bold; }
+  .d-pad { display: grid; grid-template-columns: 50px 50px 50px; grid-gap: 5px; justify-content: center; margin-bottom: 15px; }
+  .d-pad button {
+    margin: 0; padding: 15px 0; border-radius: 8px; font-size: 1.2rem;
+    background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff;
+  }
+  .d-pad .up { grid-column: 2; }
+  .d-pad .left { grid-column: 1; grid-row: 2; }
+  .d-pad .right { grid-column: 3; grid-row: 2; }
+  .d-pad .down { grid-column: 2; grid-row: 2; }
+  .d-pad button:active { background: var(--primary); color: #000; }
+
+  /* Memory Match */
+  .memory-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .memory-card {
+    height: 70px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .memory-card.flipped {
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotateY(180deg);
+  }
+  .memory-card.matched {
+    border-color: #4CAF50;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* Whack-A-Mole */
+  .whack-board {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .whack-hole {
+    width: 110px;
+    height: 80px;
+    background: #1a1a2e;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 8px 10px rgba(0,0,0,0.8), 0 2px 0 rgba(255,255,255,0.05);
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+  }
+  .whack-mole {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(to bottom, #795548, #5d4037);
+    border-radius: 50% 50% 20% 20%;
+    position: absolute;
+    bottom: -100%;
+    left: 15px;
+    transition: bottom 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+  }
+  .whack-mole.up { bottom: 0; }
+  .whack-mole:active { transform: scale(0.9); }
+  .whack-stats {
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .whack-score { color: var(--primary); }
+  .whack-time { color: var(--secondary); }
+
+</style>
+</head>
+<body>
+  <div class="container" id="hub-view">
+    <h1>Arcade Hub</h1>
+    <p class="subtitle">Select an offline game to play</p>
+    <div class="game-card" onclick="openGame('tictactoe')">
+      <div><h2>Tic-Tac-Toe</h2><span>2 Players • Strategy</span></div>
+      <h2>❌⭕</h2>
+    </div>
+    <div class="game-card" onclick="openGame('connect4')">
+      <div><h2>Connect 4</h2><span>2 Players • Tactics</span></div>
+      <h2>🔴🟡</h2>
+    </div>
+    <div class="game-card" onclick="openGame('snake')">
+      <div><h2>Snake</h2><span>1 Player • Classic</span></div>
+      <h2>🐍🍎</h2>
+    </div>
+    <div class="game-card" onclick="openGame('memory')">
+      <div><h2>Memory Match</h2><span>1 Player • Logic</span></div>
+      <h2>🧠💎</h2>
+    </div>
+    <div class="game-card" onclick="openGame('whack')">
+      <div><h2>Whack-A-Mole</h2><span>1 Player • Reflex</span></div>
+      <h2>🔨🐹</h2>
+    </div>
+
+  </div>
+
+  <div class="container hidden" id="tictactoe-view">
+    <h1>Tic-Tac-Toe</h1>
+    <p class="subtitle">Local 2-Player</p>
+    <div class="status-text" id="ttt-status">Player 1 (X)'s Turn</div>
+    <div class="ttt-board" id="ttt-board">
+      <div class="ttt-cell" data-index="0"></div><div class="ttt-cell" data-index="1"></div><div class="ttt-cell" data-index="2"></div>
+      <div class="ttt-cell" data-index="3"></div><div class="ttt-cell" data-index="4"></div><div class="ttt-cell" data-index="5"></div>
+      <div class="ttt-cell" data-index="6"></div><div class="ttt-cell" data-index="7"></div><div class="ttt-cell" data-index="8"></div>
+    </div>
+    <button class="btn-primary hidden" id="btn-ttt-rematch" onclick="tttStartGame()">Play Again</button>
+    <button class="btn-back" onclick="openGame('hub')">Back to Menu</button>
+  </div>
+
+  <div class="container large hidden" id="connect4-view">
+    <h1>Connect Four</h1>
+    <p class="subtitle">4 in a row wins</p>
+    <div class="status-text" id="c4-status" style="color: var(--c4-p1)">Red's Turn</div>
+    <div class="c4-board" id="c4-board"></div>
+    <button class="btn-primary hidden" id="btn-c4-rematch" onclick="c4StartGame()">Play Again</button>
+    <button class="btn-back" onclick="openGame('hub')">Back to Menu</button>
+  </div>
+
+  <div class="container hidden" id="snake-view">
+    <h1>Snake</h1>
+    <div class="snake-score">Score: <span id="snake-score">0</span></div>
+    <canvas id="snake-board" width="300" height="300"></canvas>
+    <button class="btn-primary hidden" id="btn-snake-rematch" onclick="snakeStartGame()">Play Again</button>
+    <div class="d-pad" id="snake-dpad">
+      <button class="up" onclick="snakeChangeDir(0,-1)">▲</button>
+      <button class="left" onclick="snakeChangeDir(-1,0)">◀</button>
+      <button class="down" onclick="snakeChangeDir(0,1)">▼</button>
+      <button class="right" onclick="snakeChangeDir(1,0)">▶</button>
+    </div>
+    <button class="btn-back" onclick="openGame('hub')">Back to Menu</button>
+  </div>
+
+  <div class="container hidden" id="memory-view">
+    <h1>Memory Match</h1>
+    <p class="subtitle">Find all pairs</p>
+    <div class="status-text" id="memory-status">Moves: 0</div>
+    <div class="memory-board" id="memory-board"></div>
+    <button class="btn-primary hidden" id="btn-memory-rematch" onclick="memoryStartGame()">Play Again</button>
+    <button class="btn-back" onclick="openGame('hub')">Back to Menu</button>
+  </div>
+
+  <div class="container hidden" id="whack-view">
+    <h1>Whack-A-Mole</h1>
+    <div class="whack-stats">
+      <span>Score: <span id="whack-score" class="whack-score">0</span></span>
+      <span>Time: <span id="whack-time" class="whack-time">30</span>s</span>
+    </div>
+    <div class="whack-board" id="whack-board">
+      <div class="whack-hole"><div class="whack-mole" data-id="0">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="1">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="2">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="3">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="4">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="5">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="6">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="7">🐹</div></div>
+      <div class="whack-hole"><div class="whack-mole" data-id="8">🐹</div></div>
+    </div>
+    <button class="btn-primary" id="btn-whack-start" onclick="whackStartGame()">Start Game</button>
+    <button class="btn-back" onclick="openGame('hub')">Back to Menu</button>
+  </div>
+
+
+<script>
+  const views = {
+    'hub': document.getElementById('hub-view'),
+    'tictactoe': document.getElementById('tictactoe-view'),
+    'connect4': document.getElementById('connect4-view'),
+    'snake': document.getElementById('snake-view'),
+    'memory': document.getElementById('memory-view'),
+    'whack': document.getElementById('whack-view')
+  };
+
+  function openGame(gameId) {
+    Object.values(views).forEach(v => v.classList.add('hidden'));
+    views[gameId].classList.remove('hidden');
+    if (gameId === 'tictactoe') tttStartGame();
+    if (gameId === 'connect4') c4StartGame();
+    if (gameId === 'snake') snakeStartGame();
+    if (gameId === 'memory') memoryStartGame();
+    if (gameId === 'whack') whackReset();
+    if (gameId === 'hub') {
+      snakeStop();
+      whackStop();
+    }
+  }
+
+
+  let tttBoard = ['', '', '', '', '', '', '', '', ''];
+  let tttPlayer = 'X';
+  let tttActive = true;
+  const tttStatus = document.getElementById('ttt-status');
+  const tttBtnRematch = document.getElementById('btn-ttt-rematch');
+  const tttCells = document.querySelectorAll('.ttt-cell');
+
+  function tttStartGame() {
+    tttBoard = ['', '', '', '', '', '', '', '', '']; tttPlayer = 'X'; tttActive = true;
+    tttBtnRematch.classList.add('hidden');
+    tttStatus.innerText = "Player X's Turn";
+    tttStatus.style.color = 'var(--primary)';
+    tttCells.forEach(cell => { cell.innerText = ''; cell.className = 'ttt-cell'; });
+  }
+
+  function tttCheckWin() {
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(let [a,b,c] of lines) { if(tttBoard[a] && tttBoard[a] === tttBoard[b] && tttBoard[a] === tttBoard[c]) return tttBoard[a]; }
+    if(!tttBoard.includes('')) return 'Draw';
+    return null;
+  }
+
+  tttCells.forEach(cell => {
+    cell.addEventListener('click', () => {
+      if(!tttActive) return;
+      const idx = cell.getAttribute('data-index');
+      if(tttBoard[idx] !== '') return;
+      tttBoard[idx] = tttPlayer; cell.innerText = tttPlayer; cell.classList.add(tttPlayer.toLowerCase());
+      const result = tttCheckWin();
+      if(result) {
+        tttActive = false; tttBtnRematch.classList.remove('hidden');
+        if(result === 'Draw') { tttStatus.innerText = "It's a Draw! 🤝"; tttStatus.style.color = '#fff'; }
+        else { tttStatus.innerText = `Player ${result} Wins! 🎉`; tttStatus.style.color = result === 'X' ? 'var(--primary)' : 'var(--secondary)'; }
+      } else {
+        tttPlayer = tttPlayer === 'X' ? 'O' : 'X';
+        tttStatus.innerText = `Player ${tttPlayer}'s Turn`;
+        tttStatus.style.color = tttPlayer === 'X' ? 'var(--primary)' : 'var(--secondary)';
+      }
+    });
+  });
+
+  const ROWS = 6, COLS = 7;
+  let c4Board = [], c4Player = 1, c4Active = true;
+  const c4BoardEl = document.getElementById('c4-board'), c4Status = document.getElementById('c4-status'), c4BtnRematch = document.getElementById('btn-c4-rematch');
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      let cell = document.createElement('div'); cell.classList.add('c4-cell'); cell.setAttribute('data-r', r); cell.setAttribute('data-c', c);
+      cell.addEventListener('click', () => c4Drop(c)); c4BoardEl.appendChild(cell);
+    }
+  }
+
+  function c4StartGame() {
+    c4Board = Array.from({length: ROWS}, () => Array(COLS).fill(0)); c4Player = 1; c4Active = true;
+    c4BtnRematch.classList.add('hidden'); c4Status.innerText = "Red's Turn"; c4Status.style.color = 'var(--c4-p1)';
+    document.querySelectorAll('.c4-cell').forEach(cell => cell.classList.remove('p1', 'p2'));
+  }
+
+  function c4Drop(col) {
+    if(!c4Active) return;
+    for(let r = ROWS - 1; r >= 0; r--) {
+      if(c4Board[r][col] === 0) {
+        c4Board[r][col] = c4Player;
+        document.querySelector(`.c4-cell[data-r='${r}'][data-c='${col}']`).classList.add(c4Player === 1 ? 'p1' : 'p2');
+        if(c4CheckWin(r, col)) { c4Active = false; c4Status.innerText = (c4Player === 1 ? 'Red' : 'Yellow') + " Wins! 🎉"; c4BtnRematch.classList.remove('hidden'); }
+        else if(c4CheckDraw()) { c4Active = false; c4Status.innerText = "Board Full. Draw!"; c4Status.style.color = "#fff"; c4BtnRematch.classList.remove('hidden'); }
+        else { c4Player = c4Player === 1 ? 2 : 1; c4Status.innerText = (c4Player === 1 ? 'Red' : 'Yellow') + "'s Turn"; c4Status.style.color = c4Player === 1 ? 'var(--c4-p1)' : 'var(--c4-p2)'; }
+        break;
+      }
+    }
+  }
+
+  function c4CheckWin(r, c) { return checkDirection(r, c, 1, 0) || checkDirection(r, c, 0, 1) || checkDirection(r, c, 1, 1) || checkDirection(r, c, 1, -1); }
+  function checkDirection(r, c, dr, dc) {
+    let count = 1, p = c4Board[r][c];
+    let r1 = r + dr, c1 = c + dc; while(r1 >= 0 && r1 < ROWS && c1 >= 0 && c1 < COLS && c4Board[r1][c1] === p) { count++; r1 += dr; c1 += dc; }
+    let r2 = r - dr, c2 = c - dc; while(r2 >= 0 && r2 < ROWS && c2 >= 0 && c2 < COLS && c4Board[r2][c2] === p) { count++; r2 -= dr; c2 -= dc; }
+    return count >= 4;
+  }
+  function c4CheckDraw() { return c4Board[0].every(cell => cell !== 0); }
+
+  const canvas = document.getElementById('snake-board'), ctx = canvas.getContext('2d'), snakeScoreEl = document.getElementById('snake-score'), snakeBtnRematch = document.getElementById('btn-snake-rematch'), snakeDpad = document.getElementById('snake-dpad');
+  const GRID_SIZE = 15;
+  let snake = [], food = {}, snakeDx = 0, snakeDy = 0, snakeScore = 0, snakeInterval = null, nextMoves = [];
+
+  function snakeChangeDir(dx, dy) {
+    const lastMove = nextMoves.length > 0 ? nextMoves[nextMoves.length-1] : {dx: snakeDx, dy: snakeDy};
+    if((lastMove.dx === 0 && dx === 0) || (lastMove.dy === 0 && dy === 0 && snake.length > 1)) return;
+    nextMoves.push({dx, dy});
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if(views['snake'].classList.contains('hidden')) return;
+    if(['ArrowUp','w'].includes(e.key)) snakeChangeDir(0, -1);
+    if(['ArrowDown','s'].includes(e.key)) snakeChangeDir(0, 1);
+    if(['ArrowLeft','a'].includes(e.key)) snakeChangeDir(-1, 0);
+    if(['ArrowRight','d'].includes(e.key)) snakeChangeDir(1, 0);
+  });
+
+  function snakePlaceFood() {
+    food = { x: Math.floor(Math.random() * (canvas.width / GRID_SIZE)), y: Math.floor(Math.random() * (canvas.height / GRID_SIZE)) };
+    if(snake.some(segment => segment.x === food.x && segment.y === food.y)) snakePlaceFood();
+  }
+
+  function snakeStartGame() {
+    snakeStop(); snake = [{x: 10, y: 10}]; snakeDx = 1; snakeDy = 0; snakeScore = 0; nextMoves = [];
+    snakeScoreEl.innerText = snakeScore; snakeBtnRematch.classList.add('hidden'); snakeDpad.classList.remove('hidden');
+    snakePlaceFood(); snakeInterval = setInterval(snakeLoop, 130);
+  }
+
+  function snakeStop() { if(snakeInterval) clearInterval(snakeInterval); }
+
+  function snakeLoop() {
+    if(nextMoves.length > 0) { const move = nextMoves.shift(); snakeDx = move.dx; snakeDy = move.dy; }
+    const head = {x: snake[0].x + snakeDx, y: snake[0].y + snakeDy};
+    if (head.x < 0 || head.x >= canvas.width / GRID_SIZE || head.y < 0 || head.y >= canvas.height / GRID_SIZE || snake.some(segment => segment.x === head.x && segment.y === head.y)) return snakeGameOver();
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) { snakeScore += 10; snakeScoreEl.innerText = snakeScore; snakePlaceFood(); }
+    else snake.pop();
+    drawSnakeBoard();
+  }
+
+  function drawSnakeBoard() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FF5722'; ctx.beginPath(); ctx.arc(food.x * GRID_SIZE + GRID_SIZE/2, food.y * GRID_SIZE + GRID_SIZE/2, GRID_SIZE/2 - 2, 0, Math.PI * 2); ctx.fill();
+    snake.forEach((segment, index) => { ctx.fillStyle = index === 0 ? '#2196F3' : '#1976D2'; ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1); });
+  }
+
+  function snakeGameOver() {
+    snakeStop(); snakeDpad.classList.add('hidden'); snakeBtnRematch.classList.remove('hidden');
+    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.fillStyle = '#ff0000'; ctx.font = '30px Inter'; ctx.textAlign = 'center'; ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+  }
+
+  /* Memory Match Logic */
+  const memoryBoardEl = document.getElementById('memory-board'), memoryStatusEl = document.getElementById('memory-status'), memoryBtnRematch = document.getElementById('btn-memory-rematch');
+  const memoryEmojis = ['🍎', '🍌', '🍇', '🍓', '🍒', '🍋', '🥝', '🫐'];
+  let memoryCards = [], memoryFlipped = [], memoryMoves = 0, memoryMatches = 0;
+
+  function memoryStartGame() {
+    memoryBoardEl.innerHTML = ''; memoryCards = []; memoryFlipped = []; memoryMoves = 0; memoryMatches = 0;
+    memoryStatusEl.innerText = "Moves: 0"; memoryBtnRematch.classList.add('hidden');
+    const deck = [...memoryEmojis, ...memoryEmojis].sort(() => Math.random() - 0.5);
+    deck.forEach((emoji, i) => {
+      const card = document.createElement('div'); card.className = 'memory-card'; card.dataset.emoji = emoji; card.dataset.index = i;
+      card.addEventListener('click', () => memoryFlip(card)); memoryBoardEl.appendChild(card); memoryCards.push(card);
+    });
+  }
+
+  function memoryFlip(card) {
+    if (memoryFlipped.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    card.classList.add('flipped'); card.innerText = card.dataset.emoji; memoryFlipped.push(card);
+    if (memoryFlipped.length === 2) {
+      memoryMoves++; memoryStatusEl.innerText = `Moves: ${memoryMoves}`;
+      if (memoryFlipped[0].dataset.emoji === memoryFlipped[1].dataset.emoji) {
+        memoryFlipped.forEach(c => c.classList.add('matched')); memoryFlipped = []; memoryMatches++;
+        if (memoryMatches === memoryEmojis.length) { memoryStatusEl.innerText = `Won in ${memoryMoves} moves! 🎉`; memoryBtnRematch.classList.remove('hidden'); }
+      } else {
+        setTimeout(() => { memoryFlipped.forEach(c => { c.classList.remove('flipped'); c.innerText = ''; }); memoryFlipped = []; }, 800);
+      }
+    }
+  }
+
+  /* Whack-A-Mole Logic */
+  const whackScoreEl = document.getElementById('whack-score'), whackTimeEl = document.getElementById('whack-time'), whackMoles = document.querySelectorAll('.whack-mole'), whackBtnStart = document.getElementById('btn-whack-start');
+  let whackScore = 0, whackTime = 30, whackTimer = null, whackMoleTimer = null, whackLastHole = -1, whackIsRunning = false;
+
+  function whackReset() {
+    whackStop(); whackScore = 0; whackTime = 30; whackIsRunning = false;
+    whackScoreEl.innerText = whackScore; whackTimeEl.innerText = whackTime;
+    whackBtnStart.style.display = 'block';
+    whackMoles.forEach(m => m.classList.remove('up'));
+  }
+
+  function whackStartGame() {
+    whackReset(); whackIsRunning = true; whackBtnStart.style.display = 'none';
+    whackTimer = setInterval(() => {
+      whackTime--; whackTimeEl.innerText = whackTime;
+      if (whackTime <= 0) whackStop();
+    }, 1000);
+    whackPeep();
+  }
+
+  function whackStop() {
+    whackIsRunning = false; clearInterval(whackTimer); clearTimeout(whackMoleTimer);
+    whackMoles.forEach(m => m.classList.remove('up'));
+    if (whackTime <= 0) alert(`Game Over! Your score: ${whackScore}`);
+  }
+
+  function whackPeep() {
+    if (!whackIsRunning) return;
+    let holeIdx; do { holeIdx = Math.floor(Math.random() * whackMoles.length); } while (holeIdx === whackLastHole);
+    whackLastHole = holeIdx; const mole = whackMoles[holeIdx];
+    mole.classList.add('up');
+    const time = Math.random() * (1000 - 400) + 400; // 400ms to 1000ms
+    whackMoleTimer = setTimeout(() => {
+      mole.classList.remove('up');
+      if (whackIsRunning) whackPeep();
+    }, time);
+  }
+
+  whackMoles.forEach(mole => {
+    mole.addEventListener('click', () => {
+      if (!mole.classList.contains('up') || !whackIsRunning) return;
+      whackScore++; mole.classList.remove('up'); whackScoreEl.innerText = whackScore;
+    });
+  });
+
+</script>
+</body>
+</html>
