@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form Data Handling</title>
+</head>
+
+<body style="font-family:sans-serif;padding: 24px; background:#f8f9fa">
+
+<h2>Enter Your Name</h2>
+
+<input id="nameInput" type="text" placeholder="Type your name"
+style="padding: 8px 12px; border:1px solid #ccc;border-radius:6px; font-size:1rem; width: 220px">
+
+<div style="display: flex; gap:8px; margin-top: 12px; flex-wrap:wrap">
+
+<button onclick="showName()"
+style="padding: 8px 16px; background:#f7df1e;border: none; border-radius:6px; cursor:pointer;font-weight:700">
+Show Name
+</button>
+
+<button onclick="autoFill()"
+style="padding: 8px 16px; background: #4ade80; border: none; border-radius:6px; cursor:pointer;font-weight:700">
+Auto Fill
+</button>
+
+<button onclick="clearInput()"
+style="padding: 8px 16px; background:#f87171; border:none; border-radius:6px; cursor:pointer; font-weight:700;color:#fff">
+Clear
+</button>
+
+</div>
+
+<div id="output" style="margin-top:16px; font-size:0.95rem; line-height: 2"></div>
+
+<script>
+
+function showName() {
+  let raw = document.getElementById("nameInput").value;
+  let name = raw.trim();
+  let out = document.getElementById("output");
+
+  if (!name) {
+    out.innerHTML = "<b style='color:red'>Please enter a name.</b>";
+    return;
+  }
+
+  out.innerHTML =
+    "<b>Raw value:</b> " + raw + "<br>" +
+    "<b>Trimmed:</b> " + name + "<br>" +
+    "<b>Length:</b> " + name.length + " characters";
+}
+
+function autoFill() {
+  document.getElementById("nameInput").value = "Doraemon";
+  document.getElementById("output").textContent = "Auto-filled with: Doraemon";
+}
+
+function clearInput() {
+  document.getElementById("nameInput").value = "";
+  document.getElementById("output").textContent = "Field cleared.";
+}
+
+</script>
+
+</body>
+</html>
